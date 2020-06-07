@@ -1,5 +1,9 @@
 package mkh.azat;
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.util.Duration;
+import mkh.azat.frames.MainFrame;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -9,11 +13,17 @@ import java.awt.*;
 import java.awt.datatransfer.*;
 import java.io.IOException;
 import java.net.URL;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import com.darkprograms.speech.translator.GoogleTranslate;
+import tray.animations.AnimationType;
+import tray.notification.NotificationType;
+import tray.notification.TrayNotification;
+
+import javax.swing.*;
 
 import static java.lang.Thread.sleep;
 
@@ -24,9 +34,13 @@ public class Main implements ClipboardOwner, NativeKeyListener {
     final int WINK_CTRL = 29;
     final int WINK_C = 46;
     final int WINK_INSERT = 3666;
+    final int WINK_SPACE = 57;
 
     public void displayNotification(String firstTrans, String secondTrans) throws AWTException, IOException {
-        SystemTray tray = SystemTray.getSystemTray();
+        TrayNotification tray = new TrayNotification();
+        AnimationType type = AnimationType.POPUP;
+        tray.setAnimationType(type);
+
         String path = "/images/icon16.png";
         URL resource = Main.class.getResource(path);
 
@@ -36,12 +50,16 @@ public class Main implements ClipboardOwner, NativeKeyListener {
 
         Image image = Toolkit.getDefaultToolkit().createImage(resource);
 
-        TrayIcon icon = new TrayIcon(image, "Translate app");
-        icon.setImageAutoSize(true);
-        icon.setToolTip(firstTrans);
-        icon.setImage(image);
-        tray.add(icon);
-        icon.displayMessage(firstTrans, secondTrans, TrayIcon.MessageType.INFO);
+        tray.setTitle(firstTrans);
+        tray.setMessage(secondTrans);
+        tray.setNotificationType(NotificationType.INFORMATION);
+        tray.showAndDismiss(Duration.millis(300));
+//        TrayIcon icon = new TrayIcon(image, "Translate app");
+//        icon.setImageAutoSize(true);
+//        icon.setToolTip(firstTrans);
+//        icon.setImage(image);
+//        tray.add(icon);
+//        icon.displayMessage(firstTrans, secondTrans, TrayIcon.MessageType.INFO);
     }
 
     void getClipboardData() {
@@ -64,6 +82,29 @@ public class Main implements ClipboardOwner, NativeKeyListener {
         }
     }
 
+
+//    private volatile TrayNotification tray;
+//
+//    @BeforeClass
+//    public static void initializeJavaFX() throws InterruptedException {
+//        final CountDownLatch latch = new CountDownLatch(1);
+//        SwingUtilities.invokeLater();
+//
+//        new JFXPanel(); // initializes JavaFX environment
+//        latch.countDown();
+//        latch.await();
+//    }
+//
+//    @AfterClass
+//    public static void shutdownJavaFX() {
+//        Platform.exit();
+//    }
+//
+//    @Before
+//    public void initializeTray() {
+//        Platform.runLater(() -> tray = new TrayNotification());
+//    }
+
     public static void main(String[] args) throws IOException, UnsupportedFlavorException, InterruptedException, NativeHookException, AWTException {
         final Main main = new Main();
 
@@ -82,6 +123,9 @@ public class Main implements ClipboardOwner, NativeKeyListener {
 
         main.displayNotification("Quick translation launched", "Happy learning :)");
 
+//        MainFrame mainFrame = new MainFrame();
+//        mainFrame.render();
+
         Object o = new Object();
         synchronized (o) {o.wait();}
     }
@@ -94,7 +138,7 @@ public class Main implements ClipboardOwner, NativeKeyListener {
         System.out.println("Owner was changed");
 
         try {
-            sleep(30);
+            sleep(200);
         } catch(Exception e) {
             System.out.println("Exception: " + e);
         }
@@ -110,9 +154,12 @@ public class Main implements ClipboardOwner, NativeKeyListener {
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {
-        if(this.lastKey == WINK_CTRL && (nativeKeyEvent.getKeyCode() == WINK_C || nativeKeyEvent.getKeyCode() == WINK_INSERT)) {
+        int keyCode = nativeKeyEvent.getKeyCode();
+        if(this.lastKey == WINK_CTRL && (keyCode == WINK_C ||
+                                        keyCode == WINK_INSERT ||
+                                        keyCode == WINK_SPACE)) {
             try {
-                sleep(20);
+                sleep(200);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -120,7 +167,7 @@ public class Main implements ClipboardOwner, NativeKeyListener {
             System.out.println("Was handled copy action");
         }
 
-        this.lastKey = nativeKeyEvent.getKeyCode();
+        this.lastKey = keyCode;
     }
 
     @Override
