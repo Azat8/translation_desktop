@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane id="main" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="191.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mkh.azat.frames.NotificationController">
+   <children>
+      <Label fx:id="secondTrans" layoutX="33.0" layoutY="58.0" prefHeight="18.0" prefWidth="127.0" text="">
+         <font>
+            <Font name="Segoe UI" size="20.0" />
+         </font>
+      </Label>
+      <Label fx:id="firstTrans" layoutX="33.0" layoutY="100.0" prefHeight="18.0" prefWidth="127.0" text="">
+         <font>
+            <Font name="Segoe UI" size="20.0" />
+         </font>
+      </Label>
+      <Label fx:id="originalText" layoutX="32.0" layoutY="19.0" prefHeight="18.0" prefWidth="127.0" text="">
+         <font>
+            <Font name="Segoe UI" size="20.0" />
+         </font>
+      </Label>
+      
+      <ImageView fitHeight="24.0" fitWidth="25.0" layoutX="362.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true" fx:id="closeImg">
+         <image>
+            <Image url="@../images/close.png" />
+         </image>
+      </ImageView>
+     
+      <ImageView fitHeight="24.0" fitWidth="25.0" layoutX="323.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true" fx:id="saveImg">
+         <image>
+            <Image url="@../images/star.png" />
+         </image>
+      </ImageView>
+     
+   </children>
+</AnchorPane>

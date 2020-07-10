@@ -1,0 +1,26 @@
+#main {
+	-fx-background-color: #313131;
+}
+
+.label,.text {  
+	-fx-font-size: 22px;
+	-fx-text-fill: white;   
+}
+
+.button {
+	-fx-background-color: #3ea6ff;
+	-fx-text-fill: white;
+	-fx-border-radius: 0;
+	-fx-border-color: transparent;
+	-fx-border-width: 0.0 0;
+	-fx-border-insets: 0;
+}
+
+.button:hover {
+	-fx-background-color: #335BA1;
+	-fx-text-fill: white;
+	-fx-border-radius: 0;
+	-fx-border-color: transparent;
+	-fx-border-width: 0.0 0;
+	-fx-border-insets: 0;
+}

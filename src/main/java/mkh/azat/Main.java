@@ -1,9 +1,5 @@
 package mkh.azat;
 
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.util.Duration;
-import mkh.azat.frames.MainFrame;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -12,22 +8,16 @@ import org.jnativehook.keyboard.NativeKeyListener;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.io.IOException;
-import java.net.URL;
-import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import com.darkprograms.speech.translator.GoogleTranslate;
-import tray.animations.AnimationType;
-import tray.notification.NotificationType;
-import tray.notification.TrayNotification;
 
-import javax.swing.*;
+import javafx.application.Application;
+import mkh.azat.frames.MainFrame;
 
-import static java.lang.Thread.sleep;
-
-public class Main implements ClipboardOwner, NativeKeyListener {
+public class Main extends Thread implements ClipboardOwner, NativeKeyListener {
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     int lastKey;
 
@@ -35,76 +25,34 @@ public class Main implements ClipboardOwner, NativeKeyListener {
     final int WINK_C = 46;
     final int WINK_INSERT = 3666;
     final int WINK_SPACE = 57;
-
-    public void displayNotification(String firstTrans, String secondTrans) throws AWTException, IOException {
-        TrayNotification tray = new TrayNotification();
-        AnimationType type = AnimationType.POPUP;
-        tray.setAnimationType(type);
-
-        String path = "/images/icon16.png";
-        URL resource = Main.class.getResource(path);
-
-        if (resource == null) {
-            throw new IOException("Image not found: " + path);
-        }
-
-        Image image = Toolkit.getDefaultToolkit().createImage(resource);
-
-        tray.setTitle(firstTrans);
-        tray.setMessage(secondTrans);
-        tray.setNotificationType(NotificationType.INFORMATION);
-        tray.showAndDismiss(Duration.millis(300));
-//        TrayIcon icon = new TrayIcon(image, "Translate app");
-//        icon.setImageAutoSize(true);
-//        icon.setToolTip(firstTrans);
-//        icon.setImage(image);
-//        tray.add(icon);
-//        icon.displayMessage(firstTrans, secondTrans, TrayIcon.MessageType.INFO);
+    
+    public void displayNotification(String originalText, String firstTrans, String secondTrans) throws AWTException, IOException {
+    	String args[] = {originalText, firstTrans, secondTrans};
+    	Application.launch(MainFrame.class, args);
+    	
+//    	MainFrame.main(args);    	
     }
 
-    void getClipboardData() {
-        Transferable content = this.clipboard.getContents(null);
+    void getClipboardData() throws InterruptedException {
+        Transferable transferable = this.clipboard.getContents(this);
+        this.regainOwnership(clipboard, transferable);
 
-        this.clipboard.setContents(content, this);
-        if (content.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
             try {
-                String text = (String) content.getTransferData(DataFlavor.stringFlavor);
+                String text = (String) transferable.getTransferData(DataFlavor.stringFlavor);
                 System.out.println("Text: " + text);
 
                 String textRU = GoogleTranslate.translate("ru", text);
                 String textHY = GoogleTranslate.translate("hy", text);
 
-                this.displayNotification(textRU, textHY);
+                this.displayNotification(text, textRU, textHY);
                 System.out.println("Translated: " + textRU + ", " + textHY);
             } catch (Exception ex) {
                 System.out.println(ex);
             }
         }
     }
-
-
-//    private volatile TrayNotification tray;
-//
-//    @BeforeClass
-//    public static void initializeJavaFX() throws InterruptedException {
-//        final CountDownLatch latch = new CountDownLatch(1);
-//        SwingUtilities.invokeLater();
-//
-//        new JFXPanel(); // initializes JavaFX environment
-//        latch.countDown();
-//        latch.await();
-//    }
-//
-//    @AfterClass
-//    public static void shutdownJavaFX() {
-//        Platform.exit();
-//    }
-//
-//    @Before
-//    public void initializeTray() {
-//        Platform.runLater(() -> tray = new TrayNotification());
-//    }
-
+    
     public static void main(String[] args) throws IOException, UnsupportedFlavorException, InterruptedException, NativeHookException, AWTException {
         final Main main = new Main();
 
@@ -121,30 +69,24 @@ public class Main implements ClipboardOwner, NativeKeyListener {
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
 
-        main.displayNotification("Quick translation launched", "Happy learning :)");
-
-//        MainFrame mainFrame = new MainFrame();
-//        mainFrame.render();
-
-        Object o = new Object();
-        synchronized (o) {o.wait();}
+        main.displayNotification("Hi,", "Quick translation launched", "Happy learning :)");
+        
+        while(true);
     }
 
-    void regainOwnership(Transferable t) {
-        clipboard.setContents(t, this);
+    public void regainOwnership(Clipboard c, Transferable t) {
+        c.setContents(t, this);
     }
 
     public void lostOwnership(Clipboard clip, Transferable t) {
-        System.out.println("Owner was changed");
-
         try {
-            sleep(200);
+            sleep(1000);
         } catch(Exception e) {
             System.out.println("Exception: " + e);
         }
 
-        Transferable contents = clip.getContents(this);
-        regainOwnership(contents);
+        Transferable transferable = clip.getContents(this);
+        this.regainOwnership(clipboard, transferable);
     }
 
     @Override
@@ -163,7 +105,12 @@ public class Main implements ClipboardOwner, NativeKeyListener {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            this.getClipboardData();
+            try {
+				this.getClipboardData();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
             System.out.println("Was handled copy action");
         }
 
